@@ -5,8 +5,6 @@ class Hldb < Formula
   version "0.3.0"
   license "MIT"
 
-  depends_on arch: [:arm64, :x86_64]
-
   on_macos do
     on_arm do
       url "https://github.com/International-IoT-Association/tools/releases/download/debug-bridge-v0.3.0/hldb-darwin-arm64", using: :nounzip
