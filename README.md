@@ -18,6 +18,26 @@ scoop bucket add heimlink https://github.com/International-IoT-Association/tools
 
 软件源只需添加一次。工具的安装、升级和使用说明随各工具发布。
 
+## 工具目录
+
+| 工具 | 用途 | 支持平台 | 使用说明 |
+|---|---|---|---|
+| hldb | HeimLink App 与串口日志、已配对设备控制 | macOS ARM64/x64、Linux ARM64/x64、Windows x64 | [安装与使用](docs/hldb.md) |
+
+安装 hldb：
+
+```bash
+# macOS / Linux
+brew install heimlink/tools/hldb
+```
+
+```powershell
+# Windows
+scoop install heimlink/hldb
+```
+
+升级使用 `brew upgrade hldb` 或 `scoop update hldb`。
+
 ## 维护规则
 
 - `Formula/` 保存 macOS / Linux 命令行工具的 Homebrew Formula。

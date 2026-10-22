@@ -1,0 +1,17 @@
+{
+    "version": "0.3.0",
+    "description": "HeimLink 调试桥：汇聚 App 与串口日志，经 App 操作已配对设备。",
+    "homepage": "https://github.com/International-IoT-Association/tools",
+    "license": "MIT",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/International-IoT-Association/tools/releases/download/debug-bridge-v0.3.0/hldb-windows-x64.exe#/hldb.exe",
+            "hash": "0de76855ce8205e1b1a77d190161950d9e94f5070717070ef57b45e0aae0a12e"
+        }
+    },
+    "bin": "hldb.exe",
+    "notes": [
+        "运行 hldb start 后，用 HeimLink App 扫码接入。",
+        "用 hldb skills install --force 和 hldb skills install --name heimlink-device-control --force 安装或更新技能；其它 Agent 用 --dir 指定技能目录。"
+    ]
+}

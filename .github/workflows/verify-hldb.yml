@@ -1,0 +1,78 @@
+name: Verify hldb installation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - Formula/hldb.rb
+      - bucket/hldb.json
+      - .github/workflows/verify-hldb.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux-homebrew:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
+      HOMEBREW_NO_ASK: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Homebrew/actions/setup-homebrew@0fdc2c96a16d9f945f7e1577784302fd27a549a9
+      - name: Install from the public tap
+        run: |
+          brew tap heimlink/tools https://github.com/International-IoT-Association/tools
+          if brew help trust >/dev/null 2>&1; then
+            brew trust --formula heimlink/tools/hldb
+          fi
+          brew install heimlink/tools/hldb
+      - name: Verify binary and embedded skill
+        run: |
+          test "$(hldb --version)" = "$(jq -r .version bucket/hldb.json)"
+          hldb version
+          brew test heimlink/tools/hldb
+          hldb skills install --name heimlink-device-control --dir "$RUNNER_TEMP/hldb-skills"
+          test -s "$RUNNER_TEMP/hldb-skills/heimlink-device-control/SKILL.md"
+
+  windows-scoop:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Scoop
+        shell: pwsh
+        run: |
+          Set-ExecutionPolicy RemoteSigned -Scope Process -Force
+          $installer = Join-Path $env:RUNNER_TEMP 'install-scoop.ps1'
+          Invoke-RestMethod https://get.scoop.sh -OutFile $installer
+          & $installer -RunAsAdmin
+          if (!(Test-Path "$env:USERPROFILE\scoop\shims\scoop.ps1")) {
+            throw 'Scoop installation failed'
+          }
+          Add-Content $env:GITHUB_PATH "$env:USERPROFILE\scoop\shims"
+      - name: Install from the public bucket
+        shell: pwsh
+        run: |
+          scoop bucket add heimlink https://github.com/International-IoT-Association/tools
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot add bucket' }
+          scoop install heimlink/hldb
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot install hldb' }
+      - name: Verify binary and embedded skill
+        shell: pwsh
+        run: |
+          $expected = (Get-Content bucket/hldb.json -Raw | ConvertFrom-Json).version
+          $actual = hldb --version
+          if ($LASTEXITCODE -ne 0 -or $actual.Trim() -ne $expected) { throw 'Version mismatch' }
+          hldb version
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot run hldb' }
+          hldb device --help
+          if ($LASTEXITCODE -ne 0) { throw 'Device commands are unavailable' }
+          $skillRoot = Join-Path $env:RUNNER_TEMP 'hldb-skills'
+          hldb skills install --name heimlink-device-control --dir $skillRoot
+          if ($LASTEXITCODE -ne 0 -or !(Test-Path "$skillRoot\heimlink-device-control\SKILL.md")) {
+            throw 'Cannot install embedded skill'
+          }
